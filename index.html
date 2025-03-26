@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pengelolaan Toko Kelontong</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2, h3 {
+            color: #333;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #laporan {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        let produk = [];
+        let pelanggan = [];
+        let transaksi = [];
+        
+        function tambahProduk() {
+            let kode = document.getElementById("kode_produk").value;
+            let nama = document.getElementById("nama_produk").value;
+            let harga = parseFloat(document.getElementById("harga_produk").value);
+            let stok = parseInt(document.getElementById("stok_produk").value);
+            produk.push({ kode, nama, harga, stok });
+            alert("Produk berhasil ditambahkan!");
+        }
+        
+        function tambahPelanggan() {
+            let id = document.getElementById("id_pelanggan").value;
+            let nama = document.getElementById("nama_pelanggan").value;
+            pelanggan.push({ id, nama });
+            alert("Pelanggan berhasil ditambahkan!");
+        }
+        
+        function tambahTransaksi() {
+            let id_pelanggan = document.getElementById("trans_id_pelanggan").value;
+            let kode_produk = document.getElementById("trans_kode_produk").value;
+            let jumlah = parseInt(document.getElementById("trans_jumlah").value);
+            let tanggal = new Date().toISOString().split('T')[0];
+            
+            let produkDitemukan = produk.find(p => p.kode === kode_produk);
+            if (!produkDitemukan || produkDitemukan.stok < jumlah) {
+                alert("Produk tidak ditemukan atau stok tidak mencukupi!");
+                return;
+            }
+            
+            produkDitemukan.stok -= jumlah;
+            let total = produkDitemukan.harga * jumlah;
+            transaksi.push({ id_pelanggan, kode_produk, jumlah, total, tanggal });
+            alert("Transaksi berhasil ditambahkan!");
+        }
+        
+        function laporanStok() {
+            let output = "<h3>Laporan Stok Produk</h3><ul>";
+            produk.forEach(p => {
+                output += `<li>${p.kode} - ${p.nama} - Stok: ${p.stok} - Harga: ${p.harga}</li>`;
+            });
+            output += "</ul>";
+            document.getElementById("laporan").innerHTML = output;
+        }
+        
+        function laporanPelanggan() {
+            let output = "<h3>Laporan Pelanggan</h3><ul>";
+            pelanggan.forEach(p => {
+                output += `<li>ID: ${p.id}, Nama: ${p.nama}</li>`;
+            });
+            output += "</ul>";
+            document.getElementById("laporan").innerHTML = output;
+        }
+
+        function cariProduk() {
+            let keyword = document.getElementById("cari_produk").value.toLowerCase();
+            let hasil = produk.filter(p => p.nama.toLowerCase().includes(keyword));
+            let output = "<h3>Hasil Pencarian</h3><ul>";
+            hasil.forEach(p => {
+                output += `<li>${p.kode} - ${p.nama} - Harga: ${p.harga} - Stok: ${p.stok}</li>`;
+            });
+            output += "</ul>";
+            document.getElementById("laporan").innerHTML = output;
+        }
+        
+        function laporanFaktur() {
+            let output = "<h3>Laporan Faktur Jual</h3><ul>";
+            transaksi.forEach(t => {
+                output += `<li>Pelanggan: ${t.id_pelanggan}, Produk: ${t.kode_produk}, Jumlah: ${t.jumlah}, Total: ${t.total}, Tanggal: ${t.tanggal}</li>`;
+            });
+            output += "</ul>";
+            document.getElementById("laporan").innerHTML = output;
+        }
+        
+        function laporanPenjualan(jenis) {
+            let output = `<h3>Rekapitulasi Penjualan ${jenis}</h3><ul>`;
+            let grouped = {};
+            transaksi.forEach(t => {
+                let key = t.tanggal.substring(0, jenis === 'perhari' ? 10 : jenis === 'perbulan' ? 7 : 4);
+                if (!grouped[key]) grouped[key] = 0;
+                grouped[key] += t.total;
+            });
+            for (let key in grouped) {
+                output += `<li>${key}: Rp${grouped[key]}</li>`;
+            }
+            output += "</ul>";
+            document.getElementById("laporan").innerHTML = output;
+        }
+    </script>
+</head>
+<body>
+    <h2>Pengelolaan Toko Kelontong</h2>
+    
+    <h3>Tambah Produk</h3>
+    <input type="text" id="kode_produk" placeholder="Kode Produk">
+    <input type="text" id="nama_produk" placeholder="Nama Produk">
+    <input type="number" id="harga_produk" placeholder="Harga">
+    <input type="number" id="stok_produk" placeholder="Stok">
+    <button onclick="tambahProduk()">Tambah</button>
+    
+    <h3>Tambah Pelanggan</h3>
+    <input type="text" id="id_pelanggan" placeholder="ID Pelanggan">
+    <input type="text" id="nama_pelanggan" placeholder="Nama Pelanggan">
+    <button onclick="tambahPelanggan()">Tambah</button>
+    
+    <h3>Tambah Transaksi</h3>
+    <input type="text" id="trans_id_pelanggan" placeholder="ID Pelanggan">
+    <input type="text" id="trans_kode_produk" placeholder="Kode Produk">
+    <input type="number" id="trans_jumlah" placeholder="Jumlah">
+    <button onclick="tambahTransaksi()">Tambah</button>
+    
+    <h3>Cari Produk</h3>
+    <input type="text" id="cari_produk" placeholder="Nama Produk">
+    <button onclick="cariProduk()">Cari</button>
+    
+    <h3>Laporan</h3>
+    <button onclick="laporanFaktur()">Laporan Faktur</button>
+    <button onclick="laporanStok()">Laporan Stok</button>
+    <button onclick="laporanPelanggan()">Laporan Pelanggan</button>
+    <button onclick="laporanPenjualan('perhari')">Rekap Harian</button>
+    <button onclick="laporanPenjualan('perbulan')">Rekap Bulanan</button>
+    <button onclick="laporanPenjualan('pertahun')">Rekap Tahunan</button>
+    
+    
+    <div id="laporan"></div>
+</body>
+</html>
